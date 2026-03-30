@@ -232,6 +232,69 @@ router.post('/', requireAuth, beatUpload.fields([
   }
 });
 
+// PUT /api/beats/:id (auth required) - edit beat
+const editUpload = multer({
+  storage: isR2Configured() ? multer.memoryStorage() : multer.diskStorage({
+    destination: (_req, _file, cb) => {
+      const base = process.env.UPLOADS_PATH || path.join(__dirname, '../../../uploads');
+      const dir = path.join(base, 'covers');
+      const fs = require('fs');
+      fs.mkdirSync(dir, { recursive: true });
+      cb(null, dir);
+    },
+    filename: (_req, file, cb) => {
+      const { v4: uuidv4 } = require('uuid');
+      cb(null, `${uuidv4()}${path.extname(file.originalname)}`);
+    },
+  }),
+  limits: { fileSize: 10 * 1024 * 1024 },
+});
+
+router.put('/:id', requireAuth, editUpload.single('cover'), async (req: AuthRequest, res: Response) => {
+  const { id } = req.params;
+  const beat = await query('SELECT producer_id FROM beats WHERE id = $1', [id]);
+  if (beat.rows.length === 0) return res.status(404).json({ error: 'NOT_FOUND' });
+  if (beat.rows[0].producer_id !== req.producerId) return res.status(403).json({ error: 'FORBIDDEN' });
+
+  const { title, genre, mood, bpm, key, type, licenses } = req.body;
+
+  let coverUrl: string | undefined;
+  if (req.file) {
+    if (isR2Configured()) {
+      coverUrl = await uploadToR2(req.file.buffer, req.file.originalname, 'covers', req.file.mimetype);
+    } else {
+      coverUrl = `/uploads/covers/${req.file.filename}`;
+    }
+  }
+
+  const result = await query(
+    `UPDATE beats SET
+      title = COALESCE($1, title),
+      genre = COALESCE($2, genre),
+      mood = COALESCE($3, mood),
+      bpm = COALESCE($4, bpm),
+      key = COALESCE($5, key),
+      type = COALESCE($6, type),
+      cover_url = COALESCE($7, cover_url),
+      updated_at = NOW()
+    WHERE id = $8
+    RETURNING *`,
+    [title || null, genre || null, mood || null, bpm ? parseInt(bpm) : null, key || null, type || null, coverUrl || null, id]
+  );
+
+  if (licenses) {
+    const licensesData = JSON.parse(licenses);
+    for (const lic of licensesData) {
+      await query(
+        `UPDATE licenses SET price = $1 WHERE beat_id = $2 AND type = $3`,
+        [lic.price, id, lic.type]
+      );
+    }
+  }
+
+  return res.json(result.rows[0]);
+});
+
 // DELETE /api/beats/:id (auth required)
 router.delete('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
   const beat = await query('SELECT producer_id FROM beats WHERE id = $1', [req.params.id]);

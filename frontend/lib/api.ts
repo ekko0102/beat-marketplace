@@ -77,3 +77,13 @@ export const login = (email: string, password: string) =>
   api.post<{ token: string; producer: Producer }>('/auth/login', { email, password }).then((r) => r.data);
 export const register = (name: string, email: string, password: string) =>
   api.post<{ token: string; producer: Producer }>('/auth/register', { name, email, password }).then((r) => r.data);
+
+export const updateProducer = (id: string, data: Partial<Producer>) =>
+  api.put<Producer>(`/producers/${id}`, data).then((r) => r.data);
+export const uploadAvatar = (id: string, file: File) => {
+  const form = new FormData(); form.append('avatar', file);
+  return api.post<{ avatar_url: string }>(`/producers/${id}/avatar`, form, { headers: { 'Content-Type': 'multipart/form-data' } }).then((r) => r.data);
+};
+export const deleteBeat = (id: string) => api.delete(`/beats/${id}`).then((r) => r.data);
+export const updateBeat = (id: string, data: FormData) =>
+  api.put(`/beats/${id}`, data, { headers: { 'Content-Type': 'multipart/form-data' } }).then((r) => r.data);

@@ -1,7 +1,9 @@
 import { Router, Request, Response } from 'express';
+import multer from 'multer';
 import { query } from '../db/connection';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { uploadAvatar, uploadBanner } from '../middleware/upload';
+import { uploadToR2, isR2Configured } from '../lib/storage';
 import path from 'path';
 
 const router = Router();
@@ -118,32 +120,46 @@ router.put('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
 });
 
 // POST /api/producers/:id/avatar (auth required)
-router.post('/:id/avatar', requireAuth, uploadAvatar.single('avatar'), async (req: AuthRequest, res: Response) => {
+const avatarUpload = multer({
+  storage: isR2Configured() ? multer.memoryStorage() : uploadAvatar.storage,
+  fileFilter: (_req, file, cb) => { file.mimetype.startsWith('image/') ? cb(null, true) : cb(new Error('只接受圖片')); },
+  limits: { fileSize: 5 * 1024 * 1024 },
+});
+router.post('/:id/avatar', requireAuth, avatarUpload.single('avatar'), async (req: AuthRequest, res: Response) => {
   const { id } = req.params;
-  if (req.producerId !== id) {
-    return res.status(403).json({ error: 'FORBIDDEN', message: '無權限' });
-  }
-  if (!req.file) {
-    return res.status(400).json({ error: 'BAD_REQUEST', message: '請上傳圖片' });
+  if (req.producerId !== id) return res.status(403).json({ error: 'FORBIDDEN', message: '無權限' });
+  if (!req.file) return res.status(400).json({ error: 'BAD_REQUEST', message: '請上傳圖片' });
+
+  let avatarUrl: string;
+  if (isR2Configured()) {
+    avatarUrl = await uploadToR2(req.file.buffer, req.file.originalname, 'avatars', req.file.mimetype);
+  } else {
+    avatarUrl = `/uploads/avatars/${req.file.filename}`;
   }
 
-  const avatarUrl = `/uploads/avatars/${req.file.filename}`;
-  await query('UPDATE producers SET avatar_url = $1 WHERE id = $2', [avatarUrl, id]);
+  await query('UPDATE producers SET avatar_url = $1, updated_at = NOW() WHERE id = $2', [avatarUrl, id]);
   return res.json({ avatar_url: avatarUrl });
 });
 
 // POST /api/producers/:id/banner (auth required)
-router.post('/:id/banner', requireAuth, uploadBanner.single('banner'), async (req: AuthRequest, res: Response) => {
+const bannerUpload = multer({
+  storage: isR2Configured() ? multer.memoryStorage() : uploadBanner.storage,
+  fileFilter: (_req, file, cb) => { file.mimetype.startsWith('image/') ? cb(null, true) : cb(new Error('只接受圖片')); },
+  limits: { fileSize: 5 * 1024 * 1024 },
+});
+router.post('/:id/banner', requireAuth, bannerUpload.single('banner'), async (req: AuthRequest, res: Response) => {
   const { id } = req.params;
-  if (req.producerId !== id) {
-    return res.status(403).json({ error: 'FORBIDDEN', message: '無權限' });
-  }
-  if (!req.file) {
-    return res.status(400).json({ error: 'BAD_REQUEST', message: '請上傳圖片' });
+  if (req.producerId !== id) return res.status(403).json({ error: 'FORBIDDEN', message: '無權限' });
+  if (!req.file) return res.status(400).json({ error: 'BAD_REQUEST', message: '請上傳圖片' });
+
+  let bannerUrl: string;
+  if (isR2Configured()) {
+    bannerUrl = await uploadToR2(req.file.buffer, req.file.originalname, 'banners', req.file.mimetype);
+  } else {
+    bannerUrl = `/uploads/banners/${req.file.filename}`;
   }
 
-  const bannerUrl = `/uploads/banners/${req.file.filename}`;
-  await query('UPDATE producers SET banner_url = $1 WHERE id = $2', [bannerUrl, id]);
+  await query('UPDATE producers SET banner_url = $1, updated_at = NOW() WHERE id = $2', [bannerUrl, id]);
   return res.json({ banner_url: bannerUrl });
 });
 
