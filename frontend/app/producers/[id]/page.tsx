@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Music, Mail, Instagram, Youtube, ExternalLink, Calendar, Star } from 'lucide-react';
+import { Music, Mail, ExternalLink, Calendar, Star, Link2 } from 'lucide-react';
 import { getProducer, Producer, Beat } from '@/lib/api';
 import BeatCard from '@/components/BeatCard';
 import AudioPlayer from '@/components/AudioPlayer';
@@ -117,26 +117,15 @@ export default function ProducerPage() {
 
           {/* Social icons */}
           <div className="flex items-center gap-2 pb-1">
-            {socialLinks?.instagram && (
-              <a href={socialLinks.instagram} target="_blank" rel="noopener noreferrer"
-                className="w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:scale-110"
-                style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                <Instagram size={16} style={{ color: '#e879f9' }} />
-              </a>
-            )}
-            {socialLinks?.youtube && (
-              <a href={socialLinks.youtube} target="_blank" rel="noopener noreferrer"
-                className="w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:scale-110"
-                style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                <Youtube size={16} style={{ color: '#f87171' }} />
-              </a>
-            )}
-            {socialLinks?.soundcloud && (
-              <a href={socialLinks.soundcloud} target="_blank" rel="noopener noreferrer"
-                className="w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:scale-110"
-                style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                <ExternalLink size={16} style={{ color: '#fb923c' }} />
-              </a>
+            {(['instagram', 'youtube', 'soundcloud', 'twitter'] as const).map((key) =>
+              socialLinks?.[key] ? (
+                <a key={key} href={socialLinks[key]} target="_blank" rel="noopener noreferrer"
+                  className="w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:scale-110"
+                  style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}
+                  title={key}>
+                  <Link2 size={14} style={{ color: '#a78bfa' }} />
+                </a>
+              ) : null
             )}
           </div>
         </div>
