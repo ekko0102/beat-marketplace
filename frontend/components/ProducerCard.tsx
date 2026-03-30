@@ -14,7 +14,7 @@ const AVATAR_GRADIENTS = [
 interface Props { producer: Producer; }
 
 export default function ProducerCard({ producer }: Props) {
-  const gradientIndex = producer.id % AVATAR_GRADIENTS.length;
+  const gradientIndex = producer.name.charCodeAt(0) % AVATAR_GRADIENTS.length;
   const avatarGradient = AVATAR_GRADIENTS[gradientIndex];
 
   return (
