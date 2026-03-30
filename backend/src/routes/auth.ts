@@ -32,7 +32,7 @@ router.post('/register', async (req: Request, res: Response) => {
 
     const producer = result.rows[0];
     const token = jwt.sign({ id: producer.id }, process.env.JWT_SECRET!, {
-      expiresIn: process.env.JWT_EXPIRES_IN || '7d',
+      expiresIn: 604800, // 7 days in seconds
     });
 
     return res.status(201).json({ token, producer });
@@ -67,7 +67,7 @@ router.post('/login', async (req: Request, res: Response) => {
     }
 
     const token = jwt.sign({ id: producer.id }, process.env.JWT_SECRET!, {
-      expiresIn: process.env.JWT_EXPIRES_IN || '7d',
+      expiresIn: 604800, // 7 days in seconds
     });
 
     const { password_hash: _, ...safeProducer } = producer;
