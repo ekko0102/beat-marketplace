@@ -1,10 +1,30 @@
 'use client';
 import Link from 'next/link';
-import { ShoppingCart, Music2, Users, LogIn, Disc3 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
+import { ShoppingCart, Music2, Users, LogIn, Disc3, LayoutDashboard, LogOut } from 'lucide-react';
 import { useCartStore } from '@/lib/store';
 
 export default function Navbar() {
   const items = useCartStore((s) => s.items);
+  const router = useRouter();
+  const pathname = usePathname();
+  const [producerName, setProducerName] = useState<string | null>(null);
+
+  // Read auth state from localStorage on every route change
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const name = localStorage.getItem('producerName');
+    setProducerName(token && name ? name : null);
+  }, [pathname]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('producerName');
+    localStorage.removeItem('producerId');
+    setProducerName(null);
+    router.push('/');
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50" style={{
@@ -54,11 +74,29 @@ export default function Navbar() {
               </span>
             )}
           </Link>
-          <Link href="/auth/login"
-            className="btn-glow flex items-center gap-1.5 px-4 py-2 text-white text-sm rounded-xl font-semibold">
-            <LogIn size={14} />
-            製作人登入
-          </Link>
+
+          {producerName ? (
+            <>
+              <Link href="/dashboard"
+                className="hidden sm:flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all"
+                style={{ background: 'rgba(124,58,237,0.15)', color: '#a78bfa', border: '1px solid rgba(124,58,237,0.25)' }}>
+                <LayoutDashboard size={14} />
+                後台
+              </Link>
+              <button onClick={handleLogout}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm transition-all"
+                style={{ background: 'rgba(255,255,255,0.05)', color: '#8888aa', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <LogOut size={14} />
+                <span className="hidden sm:inline">登出</span>
+              </button>
+            </>
+          ) : (
+            <Link href="/auth/login"
+              className="btn-glow flex items-center gap-1.5 px-4 py-2 text-white text-sm rounded-xl font-semibold">
+              <LogIn size={14} />
+              製作人登入
+            </Link>
+          )}
         </div>
       </div>
     </nav>
