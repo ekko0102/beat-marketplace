@@ -73,7 +73,7 @@ export default function BeatCard({ beat }: Props) {
       <div className="relative aspect-square overflow-hidden">
         {beat.cover_url ? (
           <Image
-            src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}${beat.cover_url}`}
+            src={beat.cover_url!.startsWith('http') ? beat.cover_url! : `${(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api').replace(/\/api$/, '')}${beat.cover_url}`}
             alt={beat.title} fill className="object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (

@@ -1,9 +1,9 @@
 import { Router, Request, Response } from 'express';
 import { query } from '../db/connection';
 import { requireAuth, AuthRequest } from '../middleware/auth';
-import { uploadBeat, uploadCover } from '../middleware/upload';
 import multer from 'multer';
 import path from 'path';
+import { uploadToR2, isR2Configured } from '../lib/storage';
 
 const router = Router();
 
@@ -140,11 +140,11 @@ router.post('/:id/play', async (req: Request, res: Response) => {
   return res.json({ ok: true });
 });
 
-// POST /api/beats (auth required) - upload beat
+// Use memory storage when R2 is configured, disk otherwise
 const beatUpload = multer({
-  storage: multer.diskStorage({
+  storage: isR2Configured() ? multer.memoryStorage() : multer.diskStorage({
     destination: (_req, file, cb) => {
-      const base = process.env.UPLOADS_PATH || 'D:/BeatMarketplace/uploads';
+      const base = process.env.UPLOADS_PATH || path.join(__dirname, '../../../uploads');
       const dir = file.fieldname === 'cover' ? path.join(base, 'covers') : path.join(base, 'beats/preview');
       const fs = require('fs');
       fs.mkdirSync(dir, { recursive: true });
@@ -177,8 +177,30 @@ router.post('/', requireAuth, beatUpload.fields([
       return res.status(400).json({ error: 'BAD_REQUEST', message: '請填寫標題和類型' });
     }
 
-    const previewUrl = `/uploads/beats/preview/${previewFile.filename}`;
-    const coverUrl = coverFile ? `/uploads/covers/${coverFile.filename}` : null;
+    let previewUrl: string;
+    let coverUrl: string | null = null;
+
+    if (isR2Configured()) {
+      // Upload to Cloudflare R2
+      previewUrl = await uploadToR2(
+        previewFile.buffer,
+        previewFile.originalname,
+        'beats/preview',
+        previewFile.mimetype,
+      );
+      if (coverFile) {
+        coverUrl = await uploadToR2(
+          coverFile.buffer,
+          coverFile.originalname,
+          'covers',
+          coverFile.mimetype,
+        );
+      }
+    } else {
+      // Local dev: use disk path
+      previewUrl = `/uploads/beats/preview/${previewFile.filename}`;
+      if (coverFile) coverUrl = `/uploads/covers/${coverFile.filename}`;
+    }
     const tagsArray = tags ? JSON.parse(tags) : [];
 
     const beatResult = await query(

@@ -19,8 +19,13 @@ export default function AudioPlayer() {
       const { Howl } = await import('howler');
       if (howlRef.current) howlRef.current.unload();
 
+      const apiBase = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api').replace(/\/api$/, '');
+      const src = currentTrack.previewUrl.startsWith('http')
+        ? currentTrack.previewUrl
+        : `${apiBase}${currentTrack.previewUrl}`;
+
       howlRef.current = new Howl({
-        src: [`http://localhost:4000${currentTrack.previewUrl}`],
+        src: [src],
         html5: true,
         onload: () => setDuration(howlRef.current.duration()),
         onend: () => pause(),
@@ -63,7 +68,7 @@ export default function AudioPlayer() {
         <div className="flex items-center gap-3 w-48 shrink-0">
           {currentTrack.coverUrl ? (
             <Image
-              src={`http://localhost:4000${currentTrack.coverUrl}`}
+              src={currentTrack.coverUrl.startsWith('http') ? currentTrack.coverUrl : `${(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api').replace(/\/api$/, '')}${currentTrack.coverUrl}`}
               alt={currentTrack.title}
               width={44} height={44}
               className="rounded object-cover"
