@@ -3,18 +3,20 @@
 @tailwind utilities;
 
 :root {
-  --bg-primary: #080810;
-  --bg-secondary: #0f0f1a;
-  --bg-card: #13131e;
-  --bg-elevated: #1a1a28;
+  --bg-primary: #050508;
+  --bg-secondary: #0a0a0f;
+  --bg-card: #0f0f16;
+  --bg-elevated: #141420;
+  --bg-hover: #18182a;
   --accent: #7C3AED;
   --accent-hover: #6D28D9;
-  --accent-glow: rgba(124, 58, 237, 0.35);
-  --electric: #3B82F6;
+  --accent-glow: rgba(124, 58, 237, 0.3);
+  --accent-dim: rgba(124, 58, 237, 0.12);
   --text-primary: #F0F0FF;
-  --text-muted: #8888aa;
-  --border: rgba(255,255,255,0.08);
-  --border-strong: rgba(255,255,255,0.15);
+  --text-secondary: #c0c0d8;
+  --text-muted: #6b6b88;
+  --border: rgba(255,255,255,0.06);
+  --border-strong: rgba(255,255,255,0.12);
 }
 
 * { box-sizing: border-box; padding: 0; margin: 0; }
@@ -24,17 +26,24 @@ html, body {
   overflow-x: hidden;
   background-color: var(--bg-primary);
   color: var(--text-primary);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: var(--font-inter, 'Inter'), -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
 a { color: inherit; text-decoration: none; }
 
-::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #333; border-radius: 8px; }
-::-webkit-scrollbar-thumb:hover { background: #555; }
+::-webkit-scrollbar-thumb { background: #222; border-radius: 8px; }
+::-webkit-scrollbar-thumb:hover { background: #444; }
 
 body { padding-bottom: 90px; }
+
+/* ── Typography ──────────────────────────────── */
+.font-display {
+  font-family: var(--font-bebas, 'Bebas Neue'), sans-serif;
+  letter-spacing: 0.02em;
+}
 
 /* ── Fix browser autofill dark mode ─────────── */
 input, select, textarea {
@@ -45,13 +54,10 @@ input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus {
   -webkit-text-fill-color: #F0F0FF !important;
-  -webkit-box-shadow: 0 0 0 1000px #16162a inset !important;
+  -webkit-box-shadow: 0 0 0 1000px #10101a inset !important;
   transition: background-color 5000s ease-in-out 0s;
 }
-option {
-  background: #16162a;
-  color: #F0F0FF;
-}
+option { background: #10101a; color: #F0F0FF; }
 
 /* ── Animations ─────────────────────────────── */
 @keyframes pulse-dot {
@@ -63,22 +69,27 @@ option {
   50% { transform: translateY(-12px); }
 }
 @keyframes glow-pulse {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 0.7; }
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.6; }
 }
 @keyframes spin-slow {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
 @keyframes bars {
-  0%, 100% { height: 6px; }
-  50% { height: 18px; }
+  0%, 100% { height: 4px; }
+  50% { height: 16px; }
+}
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .animate-pulse { animation: pulse-dot 2s ease-in-out infinite; }
 .animate-float { animation: float 4s ease-in-out infinite; }
 .animate-glow-pulse { animation: glow-pulse 3s ease-in-out infinite; }
 .animate-spin-slow { animation: spin-slow 8s linear infinite; }
+.animate-fade-up { animation: fade-up 0.3s ease-out; }
 
 .bar-1 { animation: bars 0.8s ease-in-out infinite; animation-delay: 0s; }
 .bar-2 { animation: bars 0.8s ease-in-out infinite; animation-delay: 0.15s; }
@@ -87,17 +98,17 @@ option {
 
 /* ── Glassmorphism ───────────────────────────── */
 .glass {
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .glass-strong {
-  background: rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.06);
   backdrop-filter: blur(30px);
   -webkit-backdrop-filter: blur(30px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* ── Gradient text ───────────────────────────── */
@@ -111,19 +122,30 @@ option {
 /* ── Glow button ─────────────────────────────── */
 .btn-glow {
   background: linear-gradient(135deg, #7c3aed, #6d28d9);
-  box-shadow: 0 0 20px rgba(124, 58, 237, 0.3), 0 4px 15px rgba(0,0,0,0.4);
+  box-shadow: 0 0 20px rgba(124, 58, 237, 0.25), 0 4px 12px rgba(0,0,0,0.4);
   transition: all 0.2s ease;
 }
 .btn-glow:hover {
-  box-shadow: 0 0 35px rgba(124, 58, 237, 0.55), 0 4px 20px rgba(0,0,0,0.5);
+  box-shadow: 0 0 32px rgba(124, 58, 237, 0.45), 0 4px 16px rgba(0,0,0,0.5);
   transform: translateY(-1px);
 }
+.btn-glow:active { transform: translateY(0); }
 
-/* ── Card hover glow ─────────────────────────── */
+/* ── Card hover ──────────────────────────────── */
 .card-hover {
-  transition: all 0.25s ease;
+  transition: all 0.2s ease;
 }
 .card-hover:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 20px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(124,58,237,0.3), 0 0 20px rgba(124,58,237,0.1);
+  transform: translateY(-3px);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(124,58,237,0.25), 0 0 16px rgba(124,58,237,0.08);
+}
+
+/* ── Surface styles ──────────────────────────── */
+.surface {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+}
+.surface-elevated {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
 }

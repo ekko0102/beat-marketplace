@@ -20,9 +20,9 @@ const defaultColor = { bg: 'rgba(124,58,237,0.12)', text: '#a78bfa', glow: 'rgba
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api').replace(/\/api$/, '');
 const mediaUrl = (url?: string | null) => !url ? null : url.startsWith('http') ? url : `${API_BASE}${url}`;
 
-interface Props { beat: Beat; view?: 'grid' | 'list'; }
+interface Props { beat: Beat; view?: 'grid' | 'list'; index?: number; }
 
-export default function BeatCard({ beat, view = 'grid' }: Props) {
+export default function BeatCard({ beat, view = 'grid', index }: Props) {
   const { currentTrack, isPlaying, play, pause, resume } = usePlayerStore();
   const addItem = useCartStore((s) => s.addItem);
 
@@ -69,76 +69,74 @@ export default function BeatCard({ beat, view = 'grid' }: Props) {
   if (view === 'list') {
     return (
       <div
-        className="group flex items-center gap-3 px-4 py-3 rounded-xl transition-all cursor-pointer"
+        className="group flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all cursor-pointer"
         style={{
-          background: isCurrentTrack ? 'rgba(124,58,237,0.12)' : 'rgba(255,255,255,0.025)',
-          border: isCurrentTrack ? '1px solid rgba(124,58,237,0.4)' : '1px solid rgba(255,255,255,0.05)',
+          background: isCurrentTrack ? 'rgba(124,58,237,0.1)' : 'transparent',
+          borderLeft: isCurrentTrack ? '2px solid #7c3aed' : '2px solid transparent',
         }}
         onClick={handlePlay}
       >
-        {/* Cover + Play */}
-        <div className="relative w-11 h-11 rounded-lg overflow-hidden shrink-0">
+        {/* Index / equalizer */}
+        <div className="w-5 shrink-0 text-center">
+          {isCurrentTrack ? (
+            <div className="flex items-end justify-center gap-[2px] h-4">
+              {isActive ? (
+                <>
+                  <span className="w-[2px] rounded-sm bg-purple-400 bar-1" style={{ display: 'block', minHeight: '3px' }} />
+                  <span className="w-[2px] rounded-sm bg-purple-400 bar-2" style={{ display: 'block', minHeight: '3px' }} />
+                  <span className="w-[2px] rounded-sm bg-purple-400 bar-3" style={{ display: 'block', minHeight: '3px' }} />
+                </>
+              ) : (
+                <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" />
+              )}
+            </div>
+          ) : (
+            <>
+              <span className="text-xs group-hover:hidden block" style={{ color: '#555' }}>{index ?? ''}</span>
+              <Play size={12} className="hidden group-hover:block mx-auto ml-0.5" style={{ color: '#a78bfa' }} />
+            </>
+          )}
+        </div>
+
+        {/* Cover */}
+        <div className="relative w-10 h-10 rounded-md overflow-hidden shrink-0">
           {coverUrl ? (
             <Image src={coverUrl} alt={beat.title} fill className="object-cover" />
           ) : (
-            <div className="w-full h-full flex items-center justify-center" style={{ background: `linear-gradient(135deg,${gc.glow},#0a0a14)` }}>
-              <Music size={16} style={{ color: gc.text, opacity: 0.7 }} />
+            <div className="w-full h-full flex items-center justify-center" style={{ background: `linear-gradient(135deg,${gc.glow},#080810)` }}>
+              <Music size={14} style={{ color: gc.text, opacity: 0.6 }} />
             </div>
-          )}
-          <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-            {isActive
-              ? <Pause size={14} fill="white" className="text-white" />
-              : <Play size={14} fill="white" className="text-white ml-0.5" />}
-          </div>
-        </div>
-
-        {/* Equalizer / Play indicator */}
-        <div className="w-4 shrink-0 flex items-end gap-[2px] h-4">
-          {isCurrentTrack ? (
-            isActive ? (
-              <>
-                <span className="w-[3px] rounded-sm bg-purple-400 bar-1" style={{ display: 'block', minHeight: '4px' }} />
-                <span className="w-[3px] rounded-sm bg-purple-400 bar-2" style={{ display: 'block', minHeight: '4px' }} />
-                <span className="w-[3px] rounded-sm bg-purple-400 bar-3" style={{ display: 'block', minHeight: '4px' }} />
-              </>
-            ) : (
-              <span className="w-3 h-3 rounded-full bg-purple-400 animate-pulse" />
-            )
-          ) : (
-            <Play size={12} style={{ color: '#555' }} />
           )}
         </div>
 
         {/* Title + Producer */}
         <div className="flex-1 min-w-0">
-          <div className="text-sm font-semibold text-white truncate">{beat.title}</div>
-          <div className="text-xs truncate mt-0.5" style={{ color: '#8888aa' }}>{beat.producer.name}</div>
+          <div className="text-sm font-semibold leading-tight truncate" style={{ color: isCurrentTrack ? '#c4b5fd' : '#f0f0ff' }}>
+            {beat.title}
+          </div>
+          <div className="text-xs truncate mt-0.5" style={{ color: '#6b6b88' }}>{beat.producer.name}</div>
         </div>
 
         {/* Genre */}
         {beat.genre && (
-          <span className="hidden sm:inline text-[11px] px-2 py-0.5 rounded-full shrink-0"
+          <span className="hidden sm:inline text-[10px] font-medium px-2 py-0.5 rounded-md shrink-0"
             style={{ background: gc.bg, color: gc.text }}>
             {beat.genre}
           </span>
         )}
 
         {/* BPM */}
-        {beat.bpm && (
-          <span className="hidden md:inline text-xs w-16 text-right shrink-0" style={{ color: '#8888aa' }}>
-            {beat.bpm} BPM
-          </span>
-        )}
+        <span className="hidden md:inline text-xs w-14 text-right font-mono shrink-0" style={{ color: '#555' }}>
+          {beat.bpm ? `${beat.bpm}` : ''}
+        </span>
 
         {/* Key */}
-        {beat.key && (
-          <span className="hidden lg:inline text-xs w-8 text-center shrink-0" style={{ color: '#666' }}>
-            {beat.key}
-          </span>
-        )}
+        <span className="hidden lg:inline text-xs w-8 text-center font-mono shrink-0" style={{ color: '#555' }}>
+          {beat.key || ''}
+        </span>
 
         {/* Price + Cart */}
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2 shrink-0 ml-2">
           {cheapestLicense ? (
             <>
               <span className="text-sm font-bold" style={{ color: gc.text }}>
@@ -146,14 +144,14 @@ export default function BeatCard({ beat, view = 'grid' }: Props) {
               </span>
               {!beat.is_sold_out && (
                 <button onClick={handleAddToCart}
-                  className="w-7 h-7 flex items-center justify-center rounded-lg transition-all opacity-0 group-hover:opacity-100"
-                  style={{ background: 'rgba(124,58,237,0.25)', color: '#a78bfa' }}>
-                  <ShoppingCart size={13} />
+                  className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                  style={{ background: 'rgba(124,58,237,0.2)', color: '#a78bfa', border: '1px solid rgba(124,58,237,0.3)', whiteSpace: 'nowrap' }}>
+                  <ShoppingCart size={11} /> 購買
                 </button>
               )}
             </>
           ) : (
-            <span className="text-xs" style={{ color: '#555' }}>展示</span>
+            <span className="text-xs" style={{ color: '#444' }}>展示</span>
           )}
         </div>
       </div>
