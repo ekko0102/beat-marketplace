@@ -51,9 +51,9 @@ export default function BeatsPage() {
   const hasFilters = genre || mood || bpmMin || bpmMax || priceMin || priceMax || q;
 
   return (
-    <div className="pt-16 min-h-screen">
+    <div className="pt-16 min-h-screen" style={{ background: '#080810' }}>
       {/* Header */}
-      <div className="bg-[#1A1A1A] border-b border-[#333] px-4 py-6">
+      <div className="border-b px-4 py-6" style={{ borderColor: 'rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)' }}>
         <div className="max-w-7xl mx-auto">
           <h1 className="text-2xl font-bold text-white mb-4">伴奏市集</h1>
           <div className="flex gap-3">
@@ -65,7 +65,8 @@ export default function BeatsPage() {
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
                   placeholder="搜尋標題、標籤、製作人..."
-                  className="w-full pl-9 pr-4 py-2.5 bg-[#242424] border border-[#444] rounded-lg text-white placeholder-gray-500 text-sm focus:outline-none focus:border-purple-500"
+                  className="w-full pl-9 pr-4 py-2.5 rounded-xl text-white text-sm focus:outline-none"
+              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
                 />
               </div>
               <button type="submit" className="px-4 py-2.5 bg-purple-700 hover:bg-purple-600 text-white rounded-lg text-sm font-medium transition-colors">
@@ -75,8 +76,12 @@ export default function BeatsPage() {
 
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium border transition-colors
-                ${showFilters ? 'bg-purple-700 border-purple-600 text-white' : 'bg-[#242424] border-[#444] text-gray-300 hover:text-white'}`}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all"
+              style={{
+                background: showFilters ? 'rgba(124,58,237,0.3)' : 'rgba(255,255,255,0.05)',
+                border: showFilters ? '1px solid rgba(124,58,237,0.5)' : '1px solid rgba(255,255,255,0.1)',
+                color: showFilters ? '#a78bfa' : '#aaa',
+              }}
             >
               <SlidersHorizontal size={16} /> 篩選
             </button>
@@ -84,7 +89,8 @@ export default function BeatsPage() {
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value)}
-              className="px-3 py-2.5 bg-[#242424] border border-[#444] rounded-lg text-gray-300 text-sm focus:outline-none focus:border-purple-500"
+              className="px-3 py-2.5 rounded-xl text-sm focus:outline-none"
+              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#ccc' }}
             >
               <option value="newest">最新上架</option>
               <option value="plays">最多播放</option>
@@ -95,7 +101,7 @@ export default function BeatsPage() {
 
           {/* Filters panel */}
           {showFilters && (
-            <div className="mt-4 p-4 bg-[#242424] rounded-xl border border-[#333] space-y-4">
+            <div className="mt-4 p-4 rounded-2xl space-y-4" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
               <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4">
                 {/* Genre */}
                 <div>

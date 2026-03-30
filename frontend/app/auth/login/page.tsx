@@ -17,9 +17,11 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
     try {
-      const { token } = await login(email, password);
+      const { token, producer } = await login(email, password);
       localStorage.setItem('token', token);
-      router.push('/admin');
+      localStorage.setItem('producerName', producer.name);
+      localStorage.setItem('producerId', producer.id);
+      router.push('/dashboard');
     } catch (err: any) {
       setError(err.response?.data?.message || '登入失敗，請檢查帳號密碼');
     } finally {
