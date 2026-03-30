@@ -12,6 +12,8 @@ import producerRoutes from './routes/producers';
 import beatRoutes from './routes/beats';
 import contactRoutes from './routes/contacts';
 import { errorHandler } from './middleware/errorHandler';
+import { pool } from './db/connection';
+import fs from 'fs';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -51,7 +53,21 @@ app.get('/health', (_req, res) => res.json({ status: 'ok', timestamp: new Date()
 
 app.use(errorHandler);
 
-app.listen(PORT, () => {
+async function initDB() {
+  try {
+    const sqlPath = path.join(__dirname, '../../database/init.sql');
+    if (fs.existsSync(sqlPath)) {
+      const sql = fs.readFileSync(sqlPath, 'utf8');
+      await pool.query(sql);
+      console.log('✅ Database initialized');
+    }
+  } catch (err) {
+    console.error('DB init error (may be ok if tables exist):', err);
+  }
+}
+
+app.listen(PORT, async () => {
+  await initDB();
   console.log(`✅ Backend running on http://localhost:${PORT}`);
 });
 
