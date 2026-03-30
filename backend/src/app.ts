@@ -11,6 +11,7 @@ import authRoutes from './routes/auth';
 import producerRoutes from './routes/producers';
 import beatRoutes from './routes/beats';
 import contactRoutes from './routes/contacts';
+import ordersRoutes from './routes/orders';
 import { errorHandler } from './middleware/errorHandler';
 import { pool } from './db/connection';
 
@@ -56,6 +57,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/producers', producerRoutes);
 app.use('/api/beats', beatRoutes);
 app.use('/api/contacts', contactRoutes);
+app.use('/api/orders', ordersRoutes);
 
 // Health check
 app.get('/health', (_req, res) => res.json({ status: 'ok', timestamp: new Date() }));
