@@ -2,7 +2,6 @@ import { Router, Request, Response } from 'express';
 import multer from 'multer';
 import { query } from '../db/connection';
 import { requireAuth, AuthRequest } from '../middleware/auth';
-import { uploadAvatar, uploadBanner } from '../middleware/upload';
 import { uploadToR2, isR2Configured } from '../lib/storage';
 import path from 'path';
 
@@ -119,10 +118,28 @@ router.put('/:id', requireAuth, async (req: AuthRequest, res: Response) => {
   }
 });
 
+const imageFilter: multer.Options['fileFilter'] = (_req, file, cb) => {
+  file.mimetype.startsWith('image/') ? cb(null, true) : cb(new Error('只接受圖片'));
+};
+
+const makeDiskStorage = (subdir: string) =>
+  multer.diskStorage({
+    destination: (_req, _file, cb) => {
+      const fs = require('fs');
+      const dir = path.join(process.env.UPLOADS_PATH || path.join(__dirname, '../../../uploads'), subdir);
+      fs.mkdirSync(dir, { recursive: true });
+      cb(null, dir);
+    },
+    filename: (_req, file, cb) => {
+      const { v4: uuidv4 } = require('uuid');
+      cb(null, `${uuidv4()}${path.extname(file.originalname)}`);
+    },
+  });
+
 // POST /api/producers/:id/avatar (auth required)
 const avatarUpload = multer({
-  storage: isR2Configured() ? multer.memoryStorage() : uploadAvatar.storage,
-  fileFilter: (_req, file, cb) => { file.mimetype.startsWith('image/') ? cb(null, true) : cb(new Error('只接受圖片')); },
+  storage: isR2Configured() ? multer.memoryStorage() : makeDiskStorage('avatars'),
+  fileFilter: imageFilter,
   limits: { fileSize: 5 * 1024 * 1024 },
 });
 router.post('/:id/avatar', requireAuth, avatarUpload.single('avatar'), async (req: AuthRequest, res: Response) => {
@@ -143,8 +160,8 @@ router.post('/:id/avatar', requireAuth, avatarUpload.single('avatar'), async (re
 
 // POST /api/producers/:id/banner (auth required)
 const bannerUpload = multer({
-  storage: isR2Configured() ? multer.memoryStorage() : uploadBanner.storage,
-  fileFilter: (_req, file, cb) => { file.mimetype.startsWith('image/') ? cb(null, true) : cb(new Error('只接受圖片')); },
+  storage: isR2Configured() ? multer.memoryStorage() : makeDiskStorage('banners'),
+  fileFilter: imageFilter,
   limits: { fileSize: 5 * 1024 * 1024 },
 });
 router.post('/:id/banner', requireAuth, bannerUpload.single('banner'), async (req: AuthRequest, res: Response) => {
