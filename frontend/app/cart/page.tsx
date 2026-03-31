@@ -1,4 +1,5 @@
 'use client';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -17,6 +18,10 @@ const LICENSE_LABELS: Record<string, string> = {
 export default function CartPage() {
   const { items, removeItem, total } = useCartStore();
   const router = useRouter();
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => { setHydrated(true); }, []);
+
+  if (!hydrated) return null;
 
   if (items.length === 0) {
     return (

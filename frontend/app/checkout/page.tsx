@@ -19,6 +19,7 @@ export default function CheckoutPage() {
   const { items, total, clearCart } = useCartStore();
   const router = useRouter();
 
+  const [hydrated, setHydrated] = useState(false);
   const [buyerName, setBuyerName] = useState('');
   const [buyerEmail, setBuyerEmail] = useState('');
   const [loading, setLoading] = useState(false);
@@ -28,11 +29,15 @@ export default function CheckoutPage() {
   const formRef = useRef<HTMLFormElement>(null);
   const [ecpayData, setEcpayData] = useState<{ url: string; params: Record<string, string> } | null>(null);
 
+  useEffect(() => { setHydrated(true); }, []);
+
   useEffect(() => {
     if (ecpayData && formRef.current) {
       formRef.current.submit();
     }
   }, [ecpayData]);
+
+  if (!hydrated) return null;
 
   if (items.length === 0) {
     return (
